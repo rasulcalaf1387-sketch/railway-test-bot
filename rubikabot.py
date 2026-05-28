@@ -22,7 +22,7 @@ def keyboard_menu1():
             keyboard=[
             [KeyboardButton(text="مشاهده ی تحلیل های فوق حرفه ای غلام")]
         ],
-        resize_keyboard=True # این خط رو اضافه کردم تا کیبورد به اندازه مناسبی نمایش داده بشه
+        resize_keyboard=True
     )
 
 def menu_keyboard():
@@ -37,16 +37,13 @@ def menu_keyboard():
 async def start(message : Message):
     await message.answer(text="سلام به ربات غلام تحلیل خوش آمدید. لطفا روی دکمه ی زیر کلیک کنید.",reply_markup=keyboard_menu1())
 
-# اینجا F.data رو جایگزین F.text کردم
-@router.callback_query(F.data == "مشاهده ی تحلیل های فوق حرفه ای غلام")
-async def message_handler(call : CallbackQuery): # اسم تابع رو هم تغییر دادم که با تابع message تداخل نداشته باشه
-    # اگه کاربر روی دکمه کلیک کرد، دیگه نیازی به ویرایش پیام قبلی نیست، چون این دکمه توی ReplyKeyboard هست
-    # میتونیم مستقیما پیام جدید رو بفرستیم
-    await call.message.answer(text="کدام تحلیل را میخواهید مشاهده کنید.",reply_markup=menu_keyboard())
-    await call.answer() # این خط رو اضافه کردم که نوتیفیکیشن کلیک روی دکمه برطرف بشه
+# اینجا، چون دکمه reply keyboard هست، باید پیام متنی رو دریافت کنیم، نه callback_data
+@router.message(F.text == "مشاهده ی تحلیل های فوق حرفه ای غلام")
+async def handle_view_analysis_button(message: Message):
+    await message.answer(text="کدام تحلیل را میخواهید مشاهده کنید.",reply_markup=menu_keyboard())
+    # نیازی به call.answer نیست چون این یک پیام است نه callback query
 
-
-# اینجا مقادیر callback_data رو به رشته تبدیل کردم
+# توابع زیر برای callback query های دکمه های inline هستن و درست بودن
 @router.callback_query(F.data == '3')
 async def call_internet_analysis(call : CallbackQuery):
     await call.message.edit_text(text="تا اینترنت متصل نشود اعتماد نکنید.")
