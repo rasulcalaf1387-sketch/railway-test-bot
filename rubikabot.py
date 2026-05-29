@@ -3,70 +3,69 @@ from aiogram import Bot, Dispatcher, Router, F
 from aiogram.filters import CommandStart
 from aiogram.types import (
     Message,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
     KeyboardButton,
-    CallbackQuery
 )
 
+# توکن ربات خودت رو اینجا قرار بده
 TOKEN = "8916439506:AAGmrdxPkpR-rdqIJIU1MH5_5fmI3c_a_w4"
-ID_Channle = "-1003760258868"
+# آی‌دی عددی چتی که می‌خوای پیام‌ها بهش ارسال بشه (مثلا آی‌دی خودت یا یک گروه)
+ADMIN_CHAT_ID = "123456789"  # <--- این مقدار رو با آی‌دی واقعی خودت جایگزین کن
+
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
-
-async def check(user_id, id_channle):
-    chat_member = await bot.get_chat_member(id_channle, user_id)
-    if chat_member.status in ["member", "administrator", "creator"]:
-        return True
-    else:
-        return False
-
-def checkmemeber_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="عضویت در « Z36 NET »",url="https://t.me/z36net")],
-        [InlineKeyboardButton(text="عضو شدم", callback_data="checked")]
-    ])
 
 def menu_Keybord():
     return ReplyKeyboardMarkup(keyboard=[
         [KeyboardButton(text="ساخت و تمدید بسته🚀")],
         [KeyboardButton(text="افزایش اعتبار💸")],
         [KeyboardButton(text="امتیاز من🏆")],
-        [KeyboardButton(text="تست رایگان🎁",request_contact= True)],
+        # دکمه تست رایگان که درخواست کانتکت می‌کنه
+        [KeyboardButton(text="تست رایگان🎁", request_contact=True)],
         [KeyboardButton(text="تنظیمات⚙")],
         [KeyboardButton(text="بسته های فعال🌐")],
         [KeyboardButton(text="آموزش💻")],
-    ],resize_keyboard= True
+    ], resize_keyboard=True
     )
 
 @router.message(CommandStart())
-
 async def start(message : Message):
+    await message.answer("به ربات خوش آمدید", reply_markup=menu_Keybord())
+
+# این هندلر پیام‌هایی رو دریافت می‌کنه که حاوی اطلاعات کانتکت (شماره تلفن) هستن
+@router.message(F.contact)
+async def handle_contact(message: Message):
+    # اطلاعات کانتکت کاربر
+    user_contact = message.contact
     user_id = message.from_user.id
-    ID_Channle = "-1003760258868"
-    await message.answer(text="hi")
-    if await check(user_id,ID_Channle) == True:
-        await message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
-    elif await check(user_id,ID_Channle) == False :
-        await message.answer(text="لطفا برای استفاده از ربات در چنل ما عضو شوید.",reply_markup=checkmemeber_keyboard())
+    user_name = message.from_user.full_name
 
-@router.callback_query(F.data == "checked")
+    # فرمت کردن پیام برای ارسال به ادمین
+    forward_message = (
+        f"#تماس_جدید\n\n"
+        f"کاربر:\n"
+        f"  - آیدی: {user_id}\n"
+        f"  - نام: {user_name}\n\n"
+        f"شماره تماس:\n"
+        f"  - شماره: {user_contact.phone_number}\n"
+        f"  - نام مخاطب (اگر در تلفن کاربر ذخیره شده): {user_contact.first_name} {user_contact.last_name or ''}\n"
+        f"  -شماره تلگرام (در صورت وجود): {user_contact.user_id if user_contact.user_id != user_id else 'خودش'}"
+    )
 
-async def check_again(call : CallbackQuery):
-    ID_Channle = "-1003760258868"
-    user_id = call.from_user.id
-    if await check(user_id,ID_Channle) == True:
-        await call.message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
-        await call.answer(text="عشویت شما با موفقیت تایید شد.")
-    elif await check(user_id,ID_Channle) == False :
-        await call.message.answer(text="لطفا برای استفاده از ربات در چنل ما عضو شوید.",reply_markup=checkmemeber_keyboard())
-        await call.answer(text="شما هنور در چنل عضو نشده اید")
-
+    try:
+        # ارسال پیام به ادمین
+        await bot.send_message(chat_id=5997160963, text=forward_message)
+        # ارسال پیام تایید به کاربر
+        await message.answer("شماره تماس شما با موفقیت دریافت شد. ممنون!", reply_markup=menu_Keybord())
+    except Exception as e:
+        # در صورت بروز خطا، به کاربر اطلاع بده
+        await message.answer(f"خطایی در ارسال شماره رخ داد: {e}. لطفا دوباره تلاش کنید.", reply_markup=menu_Keybord())
+        print(f"Error sending contact to admin: {e}") # لاگ خطا برای خودت
 
 async def main():
     dp.include_router(router)
+    # شروع به کار ربات
     await dp.start_polling(bot)
 
 
