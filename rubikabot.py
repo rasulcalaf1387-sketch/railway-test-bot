@@ -10,8 +10,8 @@ from aiogram.types import (
     CallbackQuery
 )
 
-TOKEN = "8903589553:AAEnUbVocnzSSKwOq_PAz2765RUH9J7ecnA"
-ID_Channle = ""
+TOKEN = "8916439506:AAGmrdxPkpR-rdqIJIU1MH5_5fmI3c_a_w4"
+ID_Channle = "-1003760258868"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
@@ -45,7 +45,7 @@ def menu_Keybord():
 
 async def start(message : Message):
     user_id = message.from_user.id
-    ID_Channle = ""
+    ID_Channle = "-1003760258868"
     if await check(user_id,ID_Channle) == True:
         await message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
     elif await check(user_id,ID_Channle) == False :
@@ -54,7 +54,7 @@ async def start(message : Message):
 @router.callback_query(F.data == "checked")
 
 async def check_again(call : CallbackQuery):
-    ID_Channle = ""
+    ID_Channle = "-1003760258868"
     user_id = call.from_user.id
     if await check(user_id,ID_Channle) == True:
         await call.message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
