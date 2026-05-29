@@ -11,57 +11,57 @@ from aiogram.types import (
 )
 
 TOKEN = "8903589553:AAEnUbVocnzSSKwOq_PAz2765RUH9J7ecnA"
-
+ID_Channle = ""
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
 
+async def check(user_id, id_channle):
+    chat_member = await bot.get_chat_member(id_channle, user_id)
+    if chat_member.status in ["member", "administrator", "creator"]:
+        return True
+    else:
+        return False
 
-def keyboard_menu1():
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="مشاهده ی تحلیل های فوق حرفه ای غلام")]
-        ],
-        resize_keyboard=True
+def checkmemeber_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="عضویت در « Z36 NET »",url="https://t.me/z36net")],
+        [InlineKeyboardButton(text="عضو شدم", callback_data="checked")]
+    ])
+
+def menu_Keybord():
+    return ReplyKeyboardMarkup(keyboard=[
+        [KeyboardButton(text="ساخت و تمدید بسته🚀")],
+        [KeyboardButton(text="افزایش اعتبار💸")],
+        [KeyboardButton(text="امتیاز من🏆")],
+        [KeyboardButton(text="تست رایگان🎁")],
+        [KeyboardButton(text="تنظیمات⚙")],
+        [KeyboardButton(text="بسته های فعال🌐")],
+        [KeyboardButton(text="آموزش💻")],
+    ],resize_keyboard= True
     )
-
-
-def menu_keyboard():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="تحلیل آینده ی اینترنت", callback_data="3")],
-            [InlineKeyboardButton(text="تحلیل جنگ", callback_data="4")]
-        ]
-    )
-
 
 @router.message(CommandStart())
-async def start(message: Message):
-    await message.answer(
-        text="سلام به ربات غلام تحلیل خوش آمدید. لطفا روی دکمه ی زیر کلیک کنید.",
-        reply_markup=keyboard_menu1()
-    )
 
+async def start(message : Message):
+    user_id = message.from_user.id
+    ID_Channle = ""
+    if await check(user_id,ID_Channle) == True:
+        await message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
+    elif await check(user_id,ID_Channle) == False :
+        await message.answer(text="لطفا برای استفاده از ربات در چنل ما عضو شوید.",reply_markup=checkmemeber_keyboard())
 
-# چون دکمه ReplyKeyboard است، باید message بگیریم نه callback_query
-@router.message(F.text == "مشاهده ی تحلیل های فوق حرفه ای غلام")
-async def show_menu(message: Message):
-    await message.answer(
-        text="کدام تحلیل را میخواهید مشاهده کنید.",
-        reply_markup=menu_keyboard()
-    )
+@router.callback_query(F.data == "checked")
 
-
-@router.callback_query(F.data == "3")
-async def call3(call: CallbackQuery):
-    await call.message.edit_text(text="تا اینترنت متصل نشود اعتماد نکنید.")
-    await call.answer(text="غلام تحلیل با موفقیت تحلیل کرد.")
-
-
-@router.callback_query(F.data == "4")
-async def call4(call: CallbackQuery):
-    await call.message.edit_text(text="تا موشک زده نشود و جنگنده ای پرواز نکند جنگ آغاز نخواهد شد")
-    await call.answer(text="غلام تحلیل با موفقیت تحلیل کرد.")
+async def check_again(call : CallbackQuery):
+    ID_Channle = ""
+    user_id = call.from_user.id
+    if await check(user_id,ID_Channle) == True:
+        await call.message.answer(text="به ربات خوش آمدید.",reply_markup= menu_Keybord())
+        await call.answer(text="عشویت شما با موفقیت تایید شد.")
+    elif await check(user_id,ID_Channle) == False :
+        await call.message.answer(text="لطفا برای استفاده از ربات در چنل ما عضو شوید.",reply_markup=checkmemeber_keyboard())
+        await call.answer(text="شما هنور در چنل عضو نشده اید")
 
 
 async def main():
